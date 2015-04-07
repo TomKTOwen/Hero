@@ -7,7 +7,7 @@ var endFrameMillis = Date.now();
 
 var keyboard = new Keyboard();
 var player = new Player();
-
+var enemy = new Enemy();
 
 // This function will return the time in seconds since the function 
 // was last called
@@ -57,7 +57,8 @@ function run()
 	
 	player.update(deltaTime);
 	player.draw(context);	
-
+	
+	enemy.draw(context);
 	
 	// update the frame counter 
 	fpsTime += deltaTime;
