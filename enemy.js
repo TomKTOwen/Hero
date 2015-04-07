@@ -24,7 +24,7 @@ Player.prototype.draw = function()
 	
 		context.translate(this.x, this.y);
 		context.rotate(this.rotation);
-		context.drawImage(this.image, -this.width / 2, -this.height / 2);
+		context.drawImage(this.image, -this.width / 3, -this.height / 3);
 	
 	context.restore();
 }
