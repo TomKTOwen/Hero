@@ -4,7 +4,6 @@ var context = canvas.getContext("2d");
 var startFrameMillis = Date.now();
 var endFrameMillis = Date.now();
 
-
 var keyboard = new Keyboard();
 var player = new Player();
 var enemy = new Enemy();
@@ -31,12 +30,10 @@ function getDeltaTime()
 		
 	return deltaTime;
 }
-
 //-------------------- Don't modify anything above here
 
 var SCREEN_WIDTH = canvas.width;
 var SCREEN_HEIGHT = canvas.height;
-
 
 // some variables to calculate the Frames Per Second (FPS - this tells use
 // how fast our game is running, and allows us to make the game run at a 
@@ -45,8 +42,138 @@ var fps = 0;
 var fpsCount = 0;
 var fpsTime = 0;
 
-// load an image to draw
+var LAYER_COUNT = 3;
+var MAP = { tw:50, th:15};
+var TILE = 35;
+var TILESET_TILE = 70;
+var TILESET_PADDING = 2;
+var TILESET_SPACING = 2;
+var TILESET_COUNT_X = 14;
+var TILESET_COUNT_Y = 14;	
+
+var LAYER_BACKGROUND = 2;
+var LAYER_LADDERS = 1;
+var LAYER_PLATFORMS = 0;
+
+//load the image to use for the level tiles
+var tileset = document.createElement("img");
+tileset.src = "tileset.png";
+
+var cells = [];
+
+function initializeCollision()
+{
+	//Loop through each player
+	for ( var layerIdx = 0 ; layerIdx < LAYER_COUNT ; ++layerIdx )
+	{
+		cells[layerIdx] = [];
+		var idx = 0;
+		//Look through each row
+		for ( var y = 0 ; y < map.layers[layerIdx].height ; ++y)
+		{
+			cells [layerIdx][y] = [];
+			//Loop through each row
+			for ( var x = 0 ; x < map.layers[layerIdx].width ; ++x)
+			{
+			if ( map.layers[layerIdx].data[idx] != 0 )
+			{
+				cells [layerIdx][y][x] = 1;
+				cells [layerIdx][y][x+1] = 1;
+				cells [layerIdx][y-1][x+1] = 1;
+				cells [layerIdx][y-1][x] = 1;
+			}
+			else if (cells[layerIdx][y][x] != 1 )
+			{
+				cells[layerIdx][y][x] = 0;
+			}
+			
+			++idx;
+			}
+		}
+	}	
+}
+
+function tiletoPixel(tile_coord)
+{
+	return tile_coord * TILE;
+}
+function pixelToTile(pixel)
+{
+	return Math.floor(pixel / TILE);
+}
+
+function cellAtTileCoord(layer, tx, ty)
+{
+	//if off the top, left or right of the map
+	if ( tx < 0 || tx > MAP.tw || ty < 0 )
+	{
+		return 1;
+	}
+	//if off the bottom of the map
+	if ( ty >= MAP.th )
+	{
+		return 0;
+	}
 	
+	return cells[layer][ty][tx];
+}
+
+function cellAtPixelCoord(layer, x, y)
+{
+	var tx = pixelToTile(x);
+	var ty = pixelToTile(y);
+	
+	return cellAtTileCoord(layer, tx, ty);
+}
+
+function drawMap ()
+{
+	//this loops over everything in our tilemap
+	for (var layerIdx = 0 ; layerIdx < LAYER_COUNT ; ++layerIdx )
+	{
+		//render everything in the current layer (layerIdx)
+	
+		//Look at every tile in the layer in turn, and render them.
+		var idx = 0;
+		//Look at each row.
+		for (var y = 0 ; y < map.layers[layerIdx].height ; ++y)
+		{
+			for ( var x = 0 ; x < map.layers[layerIdx].width ; ++x)
+			{
+				var tileIndex = map.layers[layerIdx].data[idx] - 1;
+				
+				//if there's actually a tile here
+				if ( tileIndex != -1 )
+				{
+					//draw the current tile at the current location 
+				
+					//where in the tilemap is the tile?
+					//where in the world should the tile go?
+					
+					//source x in the tileset0
+					var sx = TILESET_PADDING + (tileIndex % TILESET_COUNT_X) *
+															(TILESET_TILE + TILESET_SPACING);
+															
+					//source y in the tileset										
+					var sy = TILESET_PADDING + (Math.floor(tileIndex / TILESET_COUNT_X))*
+												(TILESET_TILE + TILESET_SPACING);
+					
+					//destination y on the canvas							
+					var dx = x * TILE;
+					
+					//destination y on the canvas
+					var dy = (y-1) * TILE;
+					
+				
+					context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE,
+												dx, dy, TILESET_TILE, TILESET_TILE);
+												
+				}
+				++idx;
+			}
+		}
+	}
+}
 
 function run()
 {
@@ -54,7 +181,7 @@ function run()
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	var deltaTime = getDeltaTime();
-	
+	drawMap()
 	player.update(deltaTime);
 	player.draw(context);	
 	
@@ -76,8 +203,9 @@ function run()
 	context.fillText("FPS: " + fps, 5, 20, 100);
 }
 
+initializeCollision();
 
-//-------------------- Don't modify anything below here
+//-------------------- Don't modify anything below here!!!!!!!!!!!!!!!!!!!!
 
 
 // This code will set up the framework so that the 'run' function is called 60 times per second.

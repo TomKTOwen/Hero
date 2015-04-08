@@ -34,7 +34,3 @@ Keyboard.prototype.isKeyDown = function(evt)
 {
 	return this.keys[evt.keyCode];
 }
-
-
-
-

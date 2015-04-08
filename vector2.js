@@ -10,23 +10,22 @@ Vector2.prototype.add = function( other_vector )
 {
 	var result = new Vector2();
 	
-	this.x + other_vector.x;
-	this.y + other_vector.y;
+	result.x = this.x + other_vector.x;
+	result.y = this.y + other_vector.y;
 	
 	return result;
 	
 }
 
 //SUBTRACT FUNCTION 
-
 //what are the inputs?
 //what are the outouts?
 Vector2.prototype.subtract = function( other_vector )
 {
 	var result = new Vector2();
 	
-	result.x = this.x + other_vector.x;
-	result.y = this.y + other_vector.y;
+	result.x = this.x - other_vector.x;
+	result.y = this.y - other_vector.y;
 	
 	return result;
 }
@@ -42,7 +41,6 @@ Vector2.prototype.multiplyScalar = function( scalar )
 	return result;
 }
 
-
 Vector2.prototype.length = function()
 {
 	var result = Math.sqrt(this.x * this.x + this.y * this.y);
@@ -50,7 +48,7 @@ Vector2.prototype.length = function()
 }
 
 //NORMALIZE FUNCTION
-Vector2.prototype.normalize = function(0
+Vector2.prototype.normalize = function()
 {
 	var len = this.length();
 	
