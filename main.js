@@ -30,7 +30,6 @@ function getDeltaTime()
 		
 	return deltaTime;
 }
-//-------------------- Don't modify anything above here
 
 var SCREEN_WIDTH = canvas.width;
 var SCREEN_HEIGHT = canvas.height;
@@ -43,7 +42,7 @@ var fpsCount = 0;
 var fpsTime = 0;
 
 var LAYER_COUNT = 3;
-var MAP = { tw:50, th:15};
+var MAP = { tw:60, th:30 };
 var TILE = 35;
 var TILESET_TILE = 70;
 var TILESET_PADDING = 2;
@@ -54,6 +53,18 @@ var TILESET_COUNT_Y = 14;
 var LAYER_BACKGROUND = 2;
 var LAYER_LADDERS = 1;
 var LAYER_PLATFORMS = 0;
+
+var LEFT = 0;
+var RIGHT = 1;
+
+var ANIM_IDLE_LEFT = 0;
+var ANIM_JUMP_LEFT = 1;
+var ANIM_WALK_LEFT = 2;
+var ANIM_IDLE_RIGHT = 3;
+var ANIM_JUMP_RIGHT = 4;
+var ANIM_WALK_RIGHT = 5;
+
+var ANIM_MAX = 6;
 
 //load the image to use for the level tiles
 var tileset = document.createElement("img");
@@ -75,19 +86,21 @@ function initializeCollision()
 			//Loop through each row
 			for ( var x = 0 ; x < map.layers[layerIdx].width ; ++x)
 			{
-			if ( map.layers[layerIdx].data[idx] != 0 )
-			{
-				cells [layerIdx][y][x] = 1;
-				cells [layerIdx][y][x+1] = 1;
-				cells [layerIdx][y-1][x+1] = 1;
-				cells [layerIdx][y-1][x] = 1;
-			}
-			else if (cells[layerIdx][y][x] != 1 )
-			{
-				cells[layerIdx][y][x] = 0;
-			}
-			
-			++idx;
+				if ( map.layers[layerIdx].data[idx] != 0 )
+				{
+					//set the 4 cells around it to be colliders
+					cells [layerIdx][y][x] = 1;
+					cells [layerIdx][y][x+1] = 1;
+					cells [layerIdx][y-1][x+1] = 1;
+					cells [layerIdx][y-1][x] = 1;
+				}
+				//if the cell hasn't already been set to 1, set it to 0
+				else if (cells[layerIdx][y][x] != 1 )
+				{
+					cells[layerIdx][y][x] = 0;
+				}
+				
+				++idx;
 			}
 		}
 	}	
@@ -181,11 +194,27 @@ function run()
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	var deltaTime = getDeltaTime();
+	
 	drawMap()
 	player.update(deltaTime);
 	player.draw(context);	
 	
 	enemy.draw(context);
+	
+	/*
+	for ( var y = 0 ; y < map.layers[LAYER_PLATFORMS].height ; ++y)
+	{
+		for ( var x = 0 ; x < map.layers[LAYER_PLATFORMS].width ; ++x)
+		{
+			if ( cells[LAYER_PLATFORMS][y][x] != 0 )
+			{
+				context.beginPath();
+				context.rect(tiletoPixel(x), tiletoPixel(y), TILE, TILE);
+				context.stroke();
+			}
+		}
+	}*/
+	
 	
 	// update the frame counter 
 	fpsTime += deltaTime;
