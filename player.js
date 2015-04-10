@@ -17,7 +17,10 @@ var Player = function()
 		[60, 61, 62, 63, 64]);
 	this.sprite.buildAnimation(12, 8, 165, 126, 0.05, //right walk animation
 		[65, 66, 67, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78]);
-		
+	
+	this.health = 100;
+
+	
 	this.width = 165;
 	this.height = 125;
 	for ( var i = 0 ; i < ANIM_MAX ; ++i)
@@ -26,13 +29,15 @@ var Player = function()
 									-this.width/2, -this.height/2);
 	}
 	
+	this.startPos = new Vector2();
+	this.startPos.set(480, 3450);
+	
 	this.position = new Vector2();
 	this.position.set(canvas.width / 1000, canvas.height / 1.2);
 	
 	this.x = canvas.width / 2;
 	this.y = canvas.height / 2;
-		
-
+	
 	this.jumping = false;
 	this.falling = false;
 	
@@ -43,7 +48,10 @@ var Player = function()
 
 	this.rotation = 0;
 	
-
+	/*
+	this.heartImage = document.createElement("img");
+	this.heartImage.src = "heart.png";
+	*/
 };
 
 
@@ -67,13 +75,12 @@ Player.prototype.changeDirectionalAnimation = function(leftAnim, rightAnim)
 
 Player.prototype.update = function(deltaTime)
 {
-	
 	this.sprite.update(deltaTime);
 
 
 	var acceleration = new Vector2();
 	var playerAccel = 5000;
-	var jumpForce = 50000;
+	var jumpForce = 55000;
 	var playerDrag = 11;
 	var playerGravity = TILE * 9.8 * 6;
 	
@@ -110,7 +117,6 @@ Player.prototype.update = function(deltaTime)
 	}
 	
 	
-	
 	var dragVector = this.velocity.multiplyScalar(playerDrag);
 	dragVector.y = 0;
 	acceleration = acceleration.subtract(dragVector);
@@ -134,14 +140,6 @@ Player.prototype.update = function(deltaTime)
 			this.changeDirectionalAnimation(ANIM_IDLE_LEFT, ANIM_IDLE_RIGHT);
 		}
 	}
-		
-		
-		
-		
-				
-				
-				
-				
 	
 	var collisionOffset = new Vector2();
 	collisionOffset.set(70,90);
@@ -150,11 +148,7 @@ Player.prototype.update = function(deltaTime)
 	
 	var tx = pixelToTile(collisionPos.x);
 	var ty = pixelToTile(collisionPos.y);
-	/*
-	context.beginPath();
-	context.rect(tiletoPixel(tx), tiletoPixel(ty), TILE, TILE);
-	context.stroke();
-	*/
+
 	
 	var nx = this.position.x % TILE;
 	var ny = this.position.y % TILE;
@@ -208,17 +202,32 @@ Player.prototype.update = function(deltaTime)
 		}
 	}
 	
+	if ( this.position.y > MAP.th * TILE + this.height)
+	{
+		this.position.set(this.startPos.x, this.startPos.y);
+		this.velocity.set(0,0);
+		this.health = 5;
+		timer = 0;	
+	
+	}	
+	
+	
 }
 	
 
 
-Player.prototype.draw = function()
+Player.prototype.draw = function(offsetX, offsetY)
 {
-	this.sprite.draw(context, this.position.x, this.position.y);
+	this.sprite.draw(context, this.position.x - offsetX, this.position.y - offsetY);
+	/*
+	for ( var h = 0 ; h < this.health ; ++h)
+	{
+		context.drawImage(this.heartImage, 50 + 20 *h, 50);
+	}
+	*/
+	
+	context.fillStyle = "black";
+	context.font="32px Arial";
+	var textToDisplay = "HP" + this.health;
+	context.fillText(textToDisplay, canvas.width - 150, 150);
 }
-
-
-
-
-
-

@@ -6,7 +6,15 @@ var endFrameMillis = Date.now();
 
 var keyboard = new Keyboard();
 var player = new Player();
-var enemy = new Enemy();
+
+var bgMusic = new Howl(
+	{
+		urls:["background.ogg"],
+		loop:true,
+		buffer:true,
+		volume:0.5
+	});
+bgMusic.play();
 
 // This function will return the time in seconds since the function 
 // was last called
@@ -16,12 +24,14 @@ function getDeltaTime()
 	endFrameMillis = startFrameMillis;
 	startFrameMillis = Date.now();
 
-		// Find the delta time (dt) - the change in time since the last drawFrame
-		// We need to modify the delta time to something we can use.
-		// We want 1 to represent 1 second, so if the delta is in milliseconds
-		// we divide it by 1000 (or multiply by 0.001). This will make our 
-		// animations appear at the right speed, though we may need to use
-		// some large values to get objects movement and rotation correct
+	
+	
+	// Find the delta time (dt) - the change in time since the last drawFrame
+	// We need to modify the delta time to something we can use.
+	// We want 1 to represent 1 second, so if the delta is in milliseconds
+	// we divide it by 1000 (or multiply by 0.001). This will make our 
+	// animations appear at the right speed, though we may need to use
+	// some large values to get objects movement and rotation correct
 	var deltaTime = (startFrameMillis - endFrameMillis) * 0.001;
 	
 		// validate that the delta is within range
@@ -66,6 +76,7 @@ var ANIM_WALK_RIGHT = 5;
 
 var ANIM_MAX = 6;
 
+var enemy = new Enemy();
 //load the image to use for the level tiles
 var tileset = document.createElement("img");
 tileset.src = "tileset.png";
@@ -139,7 +150,7 @@ function cellAtPixelCoord(layer, x, y)
 	return cellAtTileCoord(layer, tx, ty);
 }
 
-function drawMap ()
+function drawMap (offsetX, offsetY)
 {
 	//this loops over everything in our tilemap
 	for (var layerIdx = 0 ; layerIdx < LAYER_COUNT ; ++layerIdx )
@@ -171,11 +182,11 @@ function drawMap ()
 					var sy = TILESET_PADDING + (Math.floor(tileIndex / TILESET_COUNT_X))*
 												(TILESET_TILE + TILESET_SPACING);
 					
-					//destination y on the canvas							
-					var dx = x * TILE;
+					//destination x on the canvas							
+					var dx = x * TILE - offsetX;
 					
 					//destination y on the canvas
-					var dy = (y-1) * TILE;
+					var dy = (y-1) * TILE - offsetY;
 					
 				
 					context.drawImage(tileset, sx, sy, TILESET_TILE, TILESET_TILE,
@@ -188,6 +199,8 @@ function drawMap ()
 	}
 }
 
+var timer = 0;
+
 function run()
 {
 	context.fillStyle = "#ccc";		
@@ -195,12 +208,33 @@ function run()
 	
 	var deltaTime = getDeltaTime();
 	
-	drawMap()
+	timer += deltaTime;
+	
+	if ( deltaTime > 0.03 )
+	{
+		deltaTime = 0.03;
+	}
+	
+	var xScroll = player.position.x - player.startPos.x;
+	var yScroll = 0;
+	
+	if ( xScroll < 0 )
+		xScroll = 0;
+	if ( xScroll > MAP.tw * TILE - canvas.width)
+		xScroll = MAP.tw * TILE - canvas.width;
+	
+	drawMap(xScroll, yScroll);
 	player.update(deltaTime);
-	player.draw(context);	
+	player.draw(xScroll, yScroll);	
 	
-	enemy.draw(context);
+	enemy.update(deltaTime);
+	enemy.draw(xScroll, yScroll);
 	
+	if ( player.health <= 0 )
+	{
+		player.position.set(canvas.width/2, canvas.height/2);
+		player.health = 100;
+	}
 	/*
 	for ( var y = 0 ; y < map.layers[LAYER_PLATFORMS].height ; ++y)
 	{
@@ -212,9 +246,17 @@ function run()
 				context.rect(tiletoPixel(x), tiletoPixel(y), TILE, TILE);
 				context.stroke();
 			}
-		}
+		} 
 	}*/
 	
+	
+	context.fillStyle = "black";
+	context.font = "24px Arial";
+	
+	var timerSeconds = Math.floor(timer);
+	var timerMilliseconds = Math.floor((timer - timerSeconds) * 10);
+	var textToDisplay = "Level Timer: " + Math.floor(timer);
+	context.fillText(textToDisplay, 30, 30);
 	
 	// update the frame counter 
 	fpsTime += deltaTime;
@@ -234,30 +276,30 @@ function run()
 
 initializeCollision();
 
-//-------------------- Don't modify anything below here!!!!!!!!!!!!!!!!!!!!
-
-
-// This code will set up the framework so that the 'run' function is called 60 times per second.
-// We have a some options to fall back on in case the browser doesn't support our preferred method.
-(function() {
-  var onEachFrame;
-  if (window.requestAnimationFrame) {
-    onEachFrame = function(cb) {
-      var _cb = function() { cb(); window.requestAnimationFrame(_cb); }
-      _cb();
-    };
-  } else if (window.mozRequestAnimationFrame) {
-    onEachFrame = function(cb) {
-      var _cb = function() { cb(); window.mozRequestAnimationFrame(_cb); }
-      _cb();
-    };
-  } else {
-    onEachFrame = function(cb) {
-      setInterval(cb, 1000 / 60);
-    }
-  }
-  
-  window.onEachFrame = onEachFrame;
-})();
-
-window.onEachFrame(run);
+ //-------------------- Don't modify anything below here
+ 
+ 
+ // This code will set up the framework so that the 'run' function is called 60 times per second.
+ // We have a some options to fall back on in case the browser doesn't support our preferred method.
+ (function() {
+   var onEachFrame;
+   if (window.requestAnimationFrame) {
+     onEachFrame = function(cb) {
+       var _cb = function() { cb(); window.requestAnimationFrame(_cb); }
+       _cb();
+     };
+   } else if (window.mozRequestAnimationFrame) {
+     onEachFrame = function(cb) {
+       var _cb = function() { cb(); window.mozRequestAnimationFrame(_cb); }
+       _cb();
+     };
+   } else {
+     onEachFrame = function(cb) {
+       setInterval(cb, 1000 / 60);
+     }
+   }
+   
+   window.onEachFrame = onEachFrame;
+ })();
+ 
+ window.onEachFrame(run);

@@ -26,7 +26,7 @@ Vector2.prototype.subtract = function( other_vector )
 	
 	result.x = this.x - other_vector.x;
 	result.y = this.y - other_vector.y;
-	
+
 	return result;
 }
 
